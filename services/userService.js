@@ -12,12 +12,9 @@ import {
 
 export const addUser = async (req, res, next) => {
   let id = nanoid(6);
-  let name = req.body.name;
-  let email = req.body.email;
-  let password = req.body.password;
+  const { name, email, password } = req.body;
 
   const [result] = await createData(id, name, email, password);
-  console.log(result);
 
   if (result.affectedRows) {
     successResponse(res, "berhasil menambahkan user", req.body);
@@ -34,8 +31,7 @@ export const getUser = async (req, res, next) => {
 export const updateUser = async (req, res, next) => {
   let id = req.params.id;
   let updatedAt = new Date();
-  let name = req.body.name;
-  let email = req.body.email;
+  const { name, email } = req.body;
   const [result] = await updateData(name, email, updatedAt, id);
   const [data] = await detailData(id);
 
