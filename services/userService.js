@@ -1,59 +1,69 @@
 import { successResponse, errorResponse } from "../utils/response.js";
 import { nanoid } from "nanoid";
+import {
+  createData,
+  deleteData,
+  detailData,
+  getData,
+  updateData,
+} from "../repository/user.js";
 
-const users = [];
+// const users = [];
 
-export const addUser = (req, res, next) => {
-    let id = nanoid(6);
-    let name = req.body.name;
-    let email= req.body.email;
-    let password = req.body.password;
+export const addUser = async (req, res, next) => {
+  let id = nanoid(6);
+  let name = req.body.name;
+  let email = req.body.email;
+  let password = req.body.password;
 
-    let user ={
-        id, name, email, password
-    }
-    users.push(user)
+  const [result] = await createData(id, name, email, password);
+  console.log(result);
 
-    if(users.length > 0) {
-        successResponse(res, "berhasil menambahkan user", user)
-    } else {
-        errorResponse(res, "gagal menambahkan user", 500)
-    }
-}
+  if (result.affectedRows) {
+    successResponse(res, "berhasil menambahkan user", req.body);
+  } else {
+    errorResponse(res, "gagal menambahkan user", 500);
+  }
+};
 
-export const getUser = (req, res, next) => {
-    successResponse(res, "success", users)
-}
+export const getUser = async (req, res, next) => {
+  const [result] = await getData();
+  successResponse(res, "success", result);
+};
 
-export const updateUser = (req, res, next) => {
-    let id = req.params.id;
-    let name = req.body.name;
-    let email = req.body.email;
-    let password = req.body.password;
-    let index = users.findIndex(item => item.id == id);
-    if(index > -1) {
-        let user = users[index];
-        user.name = name;
-        user.email = email;
-        user.password= password;
+export const updateUser = async (req, res, next) => {
+  let id = req.params.id;
+  let updatedAt = new Date();
+  let name = req.body.name;
+  let email = req.body.email;
+  const [result] = await updateData(name, email, updatedAt, id);
+  const [data] = await detailData(id);
 
-        successResponse(res, "berhasil update user", user)
-    } else {
-        errorResponse(res, "user tidak ditemukan")
-    }
-}
+  if (result.affectedRows) {
+    successResponse(res, "berhasil update user", data);
+  } else {
+    errorResponse(res, "user tidak ditemukan");
+  }
+};
 
-export const deleteUser = (req, res, next) => {
-    let id = req.params.id;
-    let index = users.findIndex(item => item.id == id);
+export const deleteUser = async (req, res, next) => {
+  let id = req.params.id;
+  const [result] = await deleteData(id);
 
-    if(index > -1) {
-        let user = users[index];
+  if (result.affectedRows) {
+    successResponse(res, "berhasil hapus user", result);
+  } else {
+    errorResponse(res, "user tidak ditemukan");
+  }
+};
 
-        users.splice(index, 1);
+export const detailUser = async (req, res, next) => {
+  let id = req.params.id;
+  const [result] = await detailData(id);
 
-        successResponse(res, "berhasil hapus user", user);
-    } else {
-        errorResponse(res, "user tidak ditemukan")
-    }
-}
+  if (result.length) {
+    successResponse(res, "success", result);
+  } else {
+    errorResponse(res, "Belum ada user");
+  }
+};
